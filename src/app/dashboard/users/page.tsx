@@ -19,7 +19,11 @@ export default function UsersPage() {
     search: searchTerm,
   });
 
-  const users = usersResponse?.data?.data || [];
+  const users = usersResponse?.data?.data || usersResponse?.data || [];
+
+  // Debug information
+  console.log('Users Response:', usersResponse);
+  console.log('Users Data:', users);
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -33,9 +37,11 @@ export default function UsersPage() {
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'admin': return 'bg-red-100 text-red-800';
-      case 'manager': return 'bg-blue-100 text-blue-800';
-      case 'driver': return 'bg-green-100 text-green-800';
-      case 'user': return 'bg-gray-100 text-gray-800';
+      case 'management': return 'bg-orange-100 text-orange-800';
+      case 'finance': return 'bg-blue-100 text-blue-800';
+      case 'accounts': return 'bg-green-100 text-green-800';
+      case 'operations': return 'bg-purple-100 text-purple-800';
+      case 'customer': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -55,6 +61,26 @@ export default function UsersPage() {
         <div className="text-center">
           <Icon icon="mdi:loading" className="animate-spin text-4xl text-primary-600 mx-auto mb-4" />
           <p className="text-gray-600">Loading users...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Icon icon="mdi:alert-circle" className="text-4xl text-red-600 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Users</h3>
+          <p className="text-gray-600 mb-4">
+            {error && 'data' in error ? (error.data as any)?.message || 'Failed to load users' : 'An unexpected error occurred'}
+          </p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="btn-primary"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
@@ -88,10 +114,10 @@ export default function UsersPage() {
             >
               <option value="all">All Roles</option>
               <option value="admin">Admin</option>
-              <option value="operations">Operations</option>
-              <option value="accounts">Accounts</option>
-              <option value="finance">Finance</option>
               <option value="management">Management</option>
+              <option value="finance">Finance</option>
+              <option value="accounts">Accounts</option>
+              <option value="operations">Operations</option>
               <option value="customer">Customer</option>
             </select>
             <select

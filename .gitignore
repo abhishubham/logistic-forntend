@@ -92,7 +92,6 @@ dist
 
 # Gatsby files
 .cache/
-public
 
 # Vuepress build output
 .vuepress/dist
@@ -257,5 +256,3 @@ src/api/git_push.sh
 src/api/docs/
 api-docs/
 
-# Generated configuration files
-openapitools.json
