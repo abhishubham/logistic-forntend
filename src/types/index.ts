@@ -11,6 +11,75 @@ export interface PaginationParams {
   search?: string;
 }
 
+// Search Parameters for Master Data
+export interface CountrySearchParams {
+  country_id?: number;
+  country_name?: string;
+  country_code?: string;
+  page?: number;
+  page_size?: number;
+  sort_by?: string;
+  sort_dir?: 'ASC' | 'DESC';
+}
+
+export interface CitySearchParams {
+  city_id?: number;
+  city_name?: string;
+  city_code?: string;
+  country_id?: number;
+  page?: number;
+  page_size?: number;
+  sort_by?: string;
+  sort_dir?: 'ASC' | 'DESC';
+}
+
+export interface PortAirportSearchParams {
+  port_id?: number;
+  port_name?: string;
+  port_code?: string;
+  type?: PortOrAirportType;
+  city_id?: number;
+  page?: number;
+  page_size?: number;
+  sort_by?: string;
+  sort_dir?: 'ASC' | 'DESC';
+}
+
+export interface CarrierSearchParams {
+  carrier_id?: number;
+  carrier_name?: string;
+  carrier_code?: string;
+  type?: CarrierType;
+  page?: number;
+  page_size?: number;
+  sort_by?: string;
+  sort_dir?: 'ASC' | 'DESC';
+}
+
+export interface CommoditySearchParams {
+  commodity_id?: number;
+  commodity_name?: string;
+  commodity_code?: string;
+  category?: string;
+  page?: number;
+  page_size?: number;
+  sort_by?: string;
+  sort_dir?: 'ASC' | 'DESC';
+}
+
+export interface PartySearchParams {
+  party_id?: number;
+  name?: string;
+  short_name?: string;
+  type?: PartyType;
+  contact_person?: string;
+  email?: string;
+  page?: number;
+  page_size?: number;
+  sort_by?: string;
+  sort_dir?: 'ASC' | 'DESC';
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;

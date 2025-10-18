@@ -2,51 +2,80 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { ApiResponse, PaginationParams, PaginatedResponse } from '@/types';
 
 export interface Job {
-  id: string;
-  jobNumber: string;
-  title: string;
-  description?: string;
-  status: 'open' | 'in_progress' | 'completed' | 'cancelled';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  assignedTo: string;
-  client: string;
-  jobType: 'air_freight' | 'sea_freight' | 'road_freight' | 'express' | 'warehouse';
-  origin: string;
-  destination: string;
-  estimatedValue?: number;
-  specialInstructions?: string;
-  createdAt: string;
-  dueDate: string;
-  updatedAt: string;
+  job_id: number;
+  job_number: string;
+  job_type: 'export' | 'import';
+  shipper_id: number;
+  consignee_id: number;
+  notify_party_id?: number;
+  carrier_id: number;
+  origin_port_id: number;
+  destination_port_id: number;
+  loading_port_id?: number;
+  discharge_port_id?: number;
+  sales_person_id?: string;
+  job_date: string;
+  status: 'open' | 'invoiced' | 'closed';
+  gross_weight?: number;
+  chargeable_weight?: number;
+  package_count?: number;
+  eta?: string;
+  etd?: string;
+  created_date: string;
+  closed_date?: string;
+  is_active: boolean;
+  // Related entities (populated by backend)
+  shipper?: any;
+  consignee?: any;
+  notify_party?: any;
+  carrier?: any;
+  origin_port?: any;
+  destination_port?: any;
+  loading_port?: any;
+  discharge_port?: any;
+  sales_person?: any;
 }
 
 export interface CreateJobRequest {
-  title: string;
-  description?: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  assignedTo: string;
-  client: string;
-  dueDate: string;
-  jobType: 'air_freight' | 'sea_freight' | 'road_freight' | 'express' | 'warehouse';
-  origin: string;
-  destination: string;
-  estimatedValue?: number;
-  specialInstructions?: string;
+  job_number: string;
+  job_type: 'export' | 'import';
+  shipper_id: number;
+  consignee_id: number;
+  notify_party_id?: number;
+  carrier_id: number;
+  origin_port_id: number;
+  destination_port_id: number;
+  loading_port_id?: number;
+  discharge_port_id?: number;
+  sales_person_id?: string;
+  job_date: string;
+  status?: 'open' | 'invoiced' | 'closed';
+  gross_weight?: number;
+  chargeable_weight?: number;
+  package_count?: number;
+  eta?: string;
+  etd?: string;
 }
 
 export interface UpdateJobRequest {
-  title?: string;
-  description?: string;
-  status?: 'open' | 'in_progress' | 'completed' | 'cancelled';
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
-  assignedTo?: string;
-  client?: string;
-  dueDate?: string;
-  jobType?: 'air_freight' | 'sea_freight' | 'road_freight' | 'express' | 'warehouse';
-  origin?: string;
-  destination?: string;
-  estimatedValue?: number;
-  specialInstructions?: string;
+  job_number?: string;
+  job_type?: 'export' | 'import';
+  shipper_id?: number;
+  consignee_id?: number;
+  notify_party_id?: number;
+  carrier_id?: number;
+  origin_port_id?: number;
+  destination_port_id?: number;
+  loading_port_id?: number;
+  discharge_port_id?: number;
+  sales_person_id?: string;
+  job_date?: string;
+  status?: 'open' | 'invoiced' | 'closed';
+  gross_weight?: number;
+  chargeable_weight?: number;
+  package_count?: number;
+  eta?: string;
+  etd?: string;
 }
 
 const baseQuery = fetchBaseQuery({
@@ -65,20 +94,20 @@ export const jobsApi = createApi({
   baseQuery,
   tagTypes: ['Job'],
   endpoints: (builder) => ({
-    getJobs: builder.query<ApiResponse<PaginatedResponse<Job>>, PaginationParams>({
+    getJobs: builder.query<ApiResponse<Job[]>, PaginationParams>({
       query: (params) => ({
-        url: '/jobs',
+        url: '/master/jobs',
         params,
       }),
       providesTags: ['Job'],
     }),
     getJobById: builder.query<ApiResponse<Job>, string>({
-      query: (id) => `/jobs/${id}`,
+      query: (id) => `/master/jobs/${id}`,
       providesTags: ['Job'],
     }),
     createJob: builder.mutation<ApiResponse<Job>, CreateJobRequest>({
       query: (jobData) => ({
-        url: '/jobs',
+        url: '/master/jobs',
         method: 'POST',
         body: jobData,
       }),
@@ -86,7 +115,7 @@ export const jobsApi = createApi({
     }),
     updateJob: builder.mutation<ApiResponse<Job>, { id: string; data: UpdateJobRequest }>({
       query: ({ id, data }) => ({
-        url: `/jobs/${id}`,
+        url: `/master/jobs/${id}`,
         method: 'PATCH',
         body: data,
       }),
@@ -94,14 +123,14 @@ export const jobsApi = createApi({
     }),
     deleteJob: builder.mutation<ApiResponse<void>, string>({
       query: (id) => ({
-        url: `/jobs/${id}`,
+        url: `/master/jobs/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['Job'],
     }),
     updateJobStatus: builder.mutation<ApiResponse<Job>, { id: string; status: Job['status'] }>({
       query: ({ id, status }) => ({
-        url: `/jobs/${id}/status`,
+        url: `/master/jobs/${id}/status`,
         method: 'PATCH',
         body: { status },
       }),

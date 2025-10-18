@@ -72,11 +72,9 @@ jspm_packages/
 .yarn-integrity
 
 # dotenv environment variable files
-.env
 .env.development.local
 .env.test.local
 .env.production.local
-.env.local
 
 # parcel-bundler cache
 .cache
@@ -92,7 +90,6 @@ dist
 
 # Gatsby files
 .cache/
-public
 
 # Vuepress build output
 .vuepress/dist
@@ -120,7 +117,6 @@ public
 .pnp.*
 
 # IDEs and editors
-.vscode/
 .idea/
 *.swp
 *.swo
@@ -199,10 +195,6 @@ typings/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
-.env.test
-.env.production
-.env.local
 .env.development.local
 .env.test.local
 .env.production.local
@@ -234,7 +226,6 @@ tmp/
 temp/
 
 # Editor directories and files
-.vscode/*
 !.vscode/extensions.json
 .idea
 *.suo
@@ -257,5 +248,7 @@ src/api/git_push.sh
 src/api/docs/
 api-docs/
 
-# Generated configuration files
-openapitools.json
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+config.bat

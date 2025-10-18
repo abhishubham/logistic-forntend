@@ -115,7 +115,7 @@ export default function Header({ user, onLogout }: HeaderProps) {
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-900">{user?.firstName} {user?.lastName}</p>
                         <p className="text-xs text-gray-500">{user?.email}</p>
-                        <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full mt-1 ${getRoleColor(user?.role || UserRole.USER)}`}>
+                        <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full mt-1 ${getRoleColor(user?.role || UserRole.CUSTOMER)}`}>
                           {user?.role}
                         </span>
                       </div>

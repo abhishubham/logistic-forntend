@@ -13,15 +13,14 @@ export default function JobsPage() {
   const { data: jobsResponse, isLoading, error } = useGetJobsQuery({
     page: 1,
     limit: 50,
-    search: searchTerm,
   });
 
-  const jobs = jobsResponse?.data?.data || [];
+  const jobs = jobsResponse?.data || [];
 
   const filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         job.jobNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         job.client.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = job.job_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (job.shipper?.name && job.shipper.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (job.consignee?.name && job.consignee.name.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || job.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -29,19 +28,16 @@ export default function JobsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'open': return 'bg-blue-100 text-blue-800';
-      case 'in_progress': return 'bg-yellow-100 text-yellow-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'invoiced': return 'bg-yellow-100 text-yellow-800';
+      case 'closed': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'bg-red-100 text-red-800';
-      case 'high': return 'bg-orange-100 text-orange-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
+  const getJobTypeColor = (jobType: string) => {
+    switch (jobType) {
+      case 'export': return 'bg-green-100 text-green-800';
+      case 'import': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -85,9 +81,8 @@ export default function JobsPage() {
             >
               <option value="all">All Status</option>
               <option value="open">Open</option>
-              <option value="in_progress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="invoiced">Invoiced</option>
+              <option value="closed">Closed</option>
             </select>
           </div>
           <Link href="/dashboard/jobs/create" className="btn-primary">
@@ -107,19 +102,19 @@ export default function JobsPage() {
                   Job Details
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Type
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Priority
+                  Shipper
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Assigned To
+                  Consignee
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Client
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Due Date
+                  Job Date
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -129,35 +124,35 @@ export default function JobsPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredJobs.map((job) => (
                 <motion.tr
-                  key={job.id}
+                  key={job.job_id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="hover:bg-gray-50"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{job.jobNumber}</div>
-                      <div className="text-sm text-gray-500">{job.title}</div>
+                      <div className="text-sm font-medium text-gray-900">{job.job_number}</div>
+                      <div className="text-sm text-gray-500">ID: {job.job_id}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(job.status)}`}>
-                      {job.status.replace('_', ' ')}
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getJobTypeColor(job.job_type)}`}>
+                      {job.job_type.toUpperCase()}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(job.priority)}`}>
-                      {job.priority}
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(job.status)}`}>
+                      {job.status.toUpperCase()}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {job.assignedTo}
+                    {job.shipper?.name || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {job.client}
+                    {job.consignee?.name || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {new Date(job.dueDate).toLocaleDateString()}
+                    {new Date(job.job_date).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">

@@ -1,75 +1,76 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-
-const citySchema = z.object({
-  city_name: z.string().min(1, 'City name is required'),
-  city_code: z.string().min(2, 'City code is required'),
-  country_id: z.number().min(1, 'Country is required'),
-});
-
-type CityFormData = z.infer<typeof citySchema>;
+import { useCreateCityMutation, useGetCountriesQuery } from '@/store/api/masterDataApi';
+import { createCitySchema, CreateCityFormData } from '@/lib/validations';
+import Link from 'next/link';
 
 export default function CreateCityPage() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const createCity = useCreateCityMutation()[0];
+  const { data: countriesData } = useGetCountriesQuery({});
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<CityFormData>({
-    resolver: zodResolver(citySchema),
+    reset,
+  } = useForm<CreateCityFormData>({
+    resolver: zodResolver(createCitySchema),
   });
 
-  const onSubmit = async (data: CityFormData) => {
+  const onSubmit = async (data: CreateCityFormData) => {
     try {
-      setIsLoading(true);
-      // TODO: Implement API call to create city
-      console.log('Creating city:', data);
-      router.push('/dashboard/cities');
+      setIsSubmitting(true);
+      await createCity(data).unwrap();
+      reset();
+      // Redirect to cities list
+      window.location.href = '/dashboard/cities';
     } catch (error) {
       console.error('Error creating city:', error);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
+  const countries = Array.isArray(countriesData?.data) ? countriesData.data : countriesData?.data?.data || [];
+
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-6">
-        <button
-          onClick={() => router.back()}
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Create New City</h1>
+          <p className="text-gray-600 mt-1">Add a new city to the system</p>
+        </div>
+        <Link
+          href="/dashboard/cities"
+          className="btn-secondary flex items-center"
         >
-          <Icon icon="mdi:arrow-left" className="mr-1" />
+          <Icon icon="mdi:arrow-left" className="w-4 h-4 mr-2" />
           Back to Cities
-        </button>
-        <h1 className="text-2xl font-semibold text-gray-900">Create New City</h1>
-        <p className="text-gray-600 mt-1">Add a new city to the system</p>
+        </Link>
       </div>
 
+      {/* Create City Form */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
         className="card"
       >
+        <h3 className="text-lg font-semibold text-gray-900 mb-6">City Information</h3>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 City Name *
               </label>
               <input
                 {...register('city_name')}
-                type="text"
                 className="input-field"
                 placeholder="Enter city name"
               />
@@ -79,14 +80,13 @@ export default function CreateCityPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 City Code *
               </label>
               <input
                 {...register('city_code')}
-                type="text"
                 className="input-field"
-                placeholder="e.g., NYC, LON, MUM"
+                placeholder="e.g., NYC"
               />
               {errors.city_code && (
                 <p className="mt-1 text-sm text-red-600">{errors.city_code.message}</p>
@@ -94,17 +94,19 @@ export default function CreateCityPage() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Country *
               </label>
-              <select {...register('country_id', { valueAsNumber: true })} className="input-field">
-                <option value="">Select country</option>
-                {/* TODO: Populate with actual countries from API */}
-                <option value={1}>United States</option>
-                <option value={2}>India</option>
-                <option value={3}>United Kingdom</option>
-                <option value={4}>Germany</option>
-                <option value={5}>China</option>
+              <select
+                {...register('country_id', { valueAsNumber: true })}
+                className="input-field"
+              >
+                <option value="">Select a country</option>
+                {countries.map((country: any) => (
+                  <option key={country.country_id} value={country.country_id}>
+                    {country.country_name} ({country.country_code})
+                  </option>
+                ))}
               </select>
               {errors.country_id && (
                 <p className="mt-1 text-sm text-red-600">{errors.country_id.message}</p>
@@ -113,29 +115,29 @@ export default function CreateCityPage() {
           </div>
 
           <div className="flex justify-end space-x-4 pt-6 border-t">
-            <button
-              type="button"
-              onClick={() => router.back()}
+            <Link
+              href="/dashboard/cities"
               className="btn-secondary"
             >
               Cancel
-            </button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            </Link>
+            <button
               type="submit"
-              disabled={isLoading}
+              disabled={isSubmitting}
               className="btn-primary disabled:opacity-50"
             >
-              {isLoading ? (
+              {isSubmitting ? (
                 <>
-                  <Icon icon="mdi:loading" className="animate-spin mr-2" />
+                  <Icon icon="mdi:loading" className="w-4 h-4 mr-2 animate-spin" />
                   Creating...
                 </>
               ) : (
-                'Create City'
+                <>
+                  <Icon icon="mdi:plus" className="w-4 h-4 mr-2" />
+                  Create City
+                </>
               )}
-            </motion.button>
+            </button>
           </div>
         </form>
       </motion.div>

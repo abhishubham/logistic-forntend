@@ -7,6 +7,7 @@ All URIs are relative to *http://localhost:3000*
 |[**createParty**](#createparty) | **POST** /api/v1/master/parties | Create party|
 |[**getPartyById**](#getpartybyid) | **GET** /api/v1/master/parties/{id} | Get party by id|
 |[**listParties**](#listparties) | **GET** /api/v1/master/parties | List parties|
+|[**searchParties**](#searchparties) | **GET** /api/v1/master/parties/search | Search parties|
 
 # **createParty**
 > createParty(createPartyDto)
@@ -129,6 +130,83 @@ const { status, data } = await apiInstance.listParties();
 
 ### Parameters
 This endpoint does not have any parameters.
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **searchParties**
+> searchParties()
+
+
+### Example
+
+```typescript
+import {
+    PartiesApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new PartiesApi(configuration);
+
+let sortDir: 'ASC' | 'DESC'; // (optional) (default to undefined)
+let sortBy: string; // (optional) (default to undefined)
+let pageSize: number; // (optional) (default to undefined)
+let page: number; // (optional) (default to undefined)
+let email: string; // (optional) (default to undefined)
+let contactPerson: string; // (optional) (default to undefined)
+let type: string; // (optional) (default to undefined)
+let shortName: string; // (optional) (default to undefined)
+let name: string; // (optional) (default to undefined)
+let partyId: number; // (optional) (default to undefined)
+
+const { status, data } = await apiInstance.searchParties(
+    sortDir,
+    sortBy,
+    pageSize,
+    page,
+    email,
+    contactPerson,
+    type,
+    shortName,
+    name,
+    partyId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **sortDir** | [**&#39;ASC&#39; | &#39;DESC&#39;**]**Array<&#39;ASC&#39; &#124; &#39;DESC&#39;>** |  | (optional) defaults to undefined|
+| **sortBy** | [**string**] |  | (optional) defaults to undefined|
+| **pageSize** | [**number**] |  | (optional) defaults to undefined|
+| **page** | [**number**] |  | (optional) defaults to undefined|
+| **email** | [**string**] |  | (optional) defaults to undefined|
+| **contactPerson** | [**string**] |  | (optional) defaults to undefined|
+| **type** | [**string**] |  | (optional) defaults to undefined|
+| **shortName** | [**string**] |  | (optional) defaults to undefined|
+| **name** | [**string**] |  | (optional) defaults to undefined|
+| **partyId** | [**number**] |  | (optional) defaults to undefined|
 
 
 ### Return type
