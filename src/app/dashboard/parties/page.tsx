@@ -1,17 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCreatePartyMutation, useGetPartiesQuery } from '@/store/api/masterDataApi';
+import { useCreatePartyMutation, useSearchPartiesQuery } from '@/store/api/masterDataApi';
 import { createPartySchema, CreatePartyFormData, PartyType } from '@/lib/validations';
+import { PartySearchParams } from '@/types';
+import MasterDataTable from '@/components/master-data/MasterDataTable';
+import { partiesColumns } from '@/components/master-data/columns/partiesColumns';
 
 export default function PartiesPage() {
   const [showForm, setShowForm] = useState(false);
-  const [createParty, { isLoading }] = useCreatePartyMutation();
-  const { data: partiesData, isLoading: isLoadingParties } = useGetPartiesQuery({});
+  const [searchParams, setSearchParams] = useState<PartySearchParams>({
+    page: 1,
+    page_size: 25,
+    sort_by: 'name',
+    sort_dir: 'ASC',
+  });
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const createParty = useCreatePartyMutation()[0];
+  const { data: partiesData, isLoading: isLoadingParties } = useSearchPartiesQuery(searchParams);
   
   const {
     register,
@@ -32,7 +43,32 @@ export default function PartiesPage() {
     }
   };
 
-  const parties = partiesData?.data?.data || [];
+  const parties = useMemo(() => partiesData?.data || [], [partiesData]);
+  const pagination = useMemo(() => partiesData?.data || { total: 0, page: 1, limit: 25, totalPages: 0 }, [partiesData]);
+
+  // Handle search
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    setSearchParams(prev => ({
+      ...prev,
+      name: value || undefined,
+      page: 1, // Reset to first page when searching
+    }));
+  };
+
+  // Handle pagination
+  const handlePageChange = (page: number) => {
+    setSearchParams(prev => ({ ...prev, page }));
+  };
+
+  // Handle sorting
+  const handleSort = (sortBy: string) => {
+    setSearchParams(prev => ({
+      ...prev,
+      sort_by: sortBy,
+      sort_dir: prev.sort_by === sortBy && prev.sort_dir === 'ASC' ? 'DESC' : 'ASC',
+    }));
+  };
 
   return (
     <div className="space-y-6">
@@ -233,10 +269,10 @@ export default function PartiesPage() {
               </button>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoadingParties}
                 className="btn-primary disabled:opacity-50"
               >
-                {isLoading ? 'Creating...' : 'Create Party'}
+                {isLoadingParties ? 'Creating...' : 'Create Party'}
               </button>
             </div>
           </form>
@@ -247,97 +283,24 @@ export default function PartiesPage() {
       <div className="card">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">All Parties</h3>
-          <div className="flex items-center space-x-2">
-            <div className="relative">
-              <Icon
-                icon="mdi:magnify"
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              />
-              <input
-                type="text"
-                placeholder="Search parties..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-            </div>
-          </div>
         </div>
-
-        {isLoadingParties ? (
-          <div className="text-center py-8">
-            <Icon icon="mdi:loading" className="animate-spin w-8 h-8 text-primary-600 mx-auto" />
-            <p className="text-gray-600 mt-2">Loading parties...</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Contact
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Credit Limit
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {parties.map((party) => (
-                  <tr key={party.party_id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{party.name}</div>
-                        {party.short_name && (
-                          <div className="text-sm text-gray-500">{party.short_name}</div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-primary-100 text-primary-800">
-                        {party.type}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{party.contact_person || '-'}</div>
-                      <div className="text-sm text-gray-500">{party.email || party.phone || '-'}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ${parseFloat(party.credit_limit).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        party.is_active 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {party.is_active ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button className="text-primary-600 hover:text-primary-900 mr-3">
-                        <Icon icon="mdi:pencil" className="w-4 h-4" />
-                      </button>
-                      <button className="text-red-600 hover:text-red-900">
-                        <Icon icon="mdi:delete" className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        
+        <MasterDataTable
+          data={parties}
+          columns={partiesColumns}
+          isLoading={isLoadingParties}
+          searchTerm={searchTerm}
+          onSearchChange={handleSearch}
+          placeholder="Search parties..."
+          total={pagination.total}
+          page={pagination.page}
+          pageSize={pagination.limit}
+          totalPages={pagination.totalPages}
+          onPageChange={handlePageChange}
+          onSort={handleSort}
+          currentSort={searchParams.sort_by}
+          currentSortDir={searchParams.sort_dir}
+        />
       </div>
     </div>
   );

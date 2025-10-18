@@ -10,8 +10,8 @@ interface AuthState {
 
 const initialState: AuthState = {
   user: null,
-  token: typeof window !== 'undefined' ? localStorage.getItem('token') : null,
-  isAuthenticated: typeof window !== 'undefined' ? !!localStorage.getItem('token') : false,
+  token: null,
+  isAuthenticated: false,
   isLoading: false,
 };
 
@@ -38,8 +38,17 @@ const authSlice = createSlice({
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
+    initializeAuth: (state) => {
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('token');
+        if (token) {
+          state.token = token;
+          state.isAuthenticated = true;
+        }
+      }
+    },
   },
 });
 
-export const { setCredentials, logout, setLoading } = authSlice.actions;
+export const { setCredentials, logout, setLoading, initializeAuth } = authSlice.actions;
 export default authSlice.reducer;

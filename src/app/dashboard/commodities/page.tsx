@@ -1,17 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCreateCommodityMutation, useGetCommoditiesQuery } from '@/store/api/masterDataApi';
+import { useCreateCommodityMutation, useSearchCommoditiesQuery } from '@/store/api/masterDataApi';
 import { createCommoditySchema, CreateCommodityFormData } from '@/lib/validations';
+import { CommoditySearchParams } from '@/types';
+import MasterDataTable from '@/components/master-data/MasterDataTable';
+import { commoditiesColumns } from '@/components/master-data/columns/commoditiesColumns';
 
 export default function CommoditiesPage() {
   const [showForm, setShowForm] = useState(false);
-  const [createCommodity, { isLoading }] = useCreateCommodityMutation();
-  const { data: commoditiesData, isLoading: isLoadingCommodities } = useGetCommoditiesQuery({});
+  const [searchParams, setSearchParams] = useState<CommoditySearchParams>({
+    page: 1,
+    page_size: 25,
+    sort_by: 'commodity_name',
+    sort_dir: 'ASC',
+  });
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const createCommodity = useCreateCommodityMutation()[0];
+  const { data: commoditiesData, isLoading: isLoadingCommodities } = useSearchCommoditiesQuery(searchParams);
   
   const {
     register,
@@ -32,7 +43,32 @@ export default function CommoditiesPage() {
     }
   };
 
-  const commodities = commoditiesData?.data?.data || [];
+  const commodities = useMemo(() => commoditiesData?.data || [], [commoditiesData]);
+  const pagination = useMemo(() => commoditiesData?.data || { total: 0, page: 1, limit: 25, totalPages: 0 }, [commoditiesData]);
+
+  // Handle search
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    setSearchParams(prev => ({
+      ...prev,
+      commodity_name: value || undefined,
+      page: 1,
+    }));
+  };
+
+  // Handle pagination
+  const handlePageChange = (page: number) => {
+    setSearchParams(prev => ({ ...prev, page }));
+  };
+
+  // Handle sorting
+  const handleSort = (sortBy: string) => {
+    setSearchParams(prev => ({
+      ...prev,
+      sort_by: sortBy,
+      sort_dir: prev.sort_by === sortBy && prev.sort_dir === 'ASC' ? 'DESC' : 'ASC',
+    }));
+  };
 
   return (
     <div className="space-y-6">
@@ -114,10 +150,10 @@ export default function CommoditiesPage() {
               </button>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoadingCommodities}
                 className="btn-primary disabled:opacity-50"
               >
-                {isLoading ? 'Creating...' : 'Create Commodity'}
+                {isLoadingCommodities ? 'Creating...' : 'Create Commodity'}
               </button>
             </div>
           </form>
@@ -128,88 +164,24 @@ export default function CommoditiesPage() {
       <div className="card">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">All Commodities</h3>
-          <div className="flex items-center space-x-2">
-            <div className="relative">
-              <Icon
-                icon="mdi:magnify"
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              />
-              <input
-                type="text"
-                placeholder="Search commodities..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-            </div>
-          </div>
         </div>
-
-        {isLoadingCommodities ? (
-          <div className="text-center py-8">
-            <Icon icon="mdi:loading" className="animate-spin w-8 h-8 text-primary-600 mx-auto" />
-            <p className="text-gray-600 mt-2">Loading commodities...</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Commodity
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Code
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Category
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {commodities.map((commodity) => (
-                  <tr key={commodity.commodity_id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <Icon icon="mdi:package-variant" className="w-5 h-5 text-gray-400 mr-3" />
-                        <div className="text-sm font-medium text-gray-900">{commodity.commodity_name}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {commodity.commodity_code}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {commodity.category || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        commodity.is_active 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {commodity.is_active ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button className="text-primary-600 hover:text-primary-900 mr-3">
-                        <Icon icon="mdi:pencil" className="w-4 h-4" />
-                      </button>
-                      <button className="text-red-600 hover:text-red-900">
-                        <Icon icon="mdi:delete" className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        
+        <MasterDataTable
+          data={commodities}
+          columns={commoditiesColumns}
+          isLoading={isLoadingCommodities}
+          searchTerm={searchTerm}
+          onSearchChange={handleSearch}
+          placeholder="Search commodities..."
+          total={pagination.total}
+          page={pagination.page}
+          pageSize={pagination.limit}
+          totalPages={pagination.totalPages}
+          onPageChange={handlePageChange}
+          onSort={handleSort}
+          currentSort={searchParams.sort_by}
+          currentSortDir={searchParams.sort_dir}
+        />
       </div>
     </div>
   );

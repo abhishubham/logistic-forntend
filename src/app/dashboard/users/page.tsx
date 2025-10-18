@@ -19,11 +19,9 @@ export default function UsersPage() {
     search: searchTerm,
   });
 
-  const users = usersResponse?.data?.data || usersResponse?.data || [];
-
-  // Debug information
-  console.log('Users Response:', usersResponse);
-  console.log('Users Data:', users);
+  const users = Array.isArray(usersResponse?.data) 
+    ? usersResponse.data 
+    : usersResponse?.data?.data || [];
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
