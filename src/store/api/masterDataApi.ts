@@ -15,10 +15,16 @@ import {
   ApiResponse,
   PaginationParams,
   PaginatedResponse,
+  CountrySearchParams,
+  CitySearchParams,
+  PortAirportSearchParams,
+  CarrierSearchParams,
+  CommoditySearchParams,
+  PartySearchParams,
 } from '@/types';
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL as string,
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1',
   prepareHeaders: (headers, { getState }) => {
     const token = (getState() as any).auth.token;
     if (token) {
@@ -37,6 +43,13 @@ export const masterDataApi = createApi({
     getCountries: builder.query<ApiResponse<PaginatedResponse<Country>>, PaginationParams>({
       query: (params) => ({
         url: '/master/countries',
+        params,
+      }),
+      providesTags: ['Country'],
+    }),
+    searchCountries: builder.query<ApiResponse<PaginatedResponse<Country>>, CountrySearchParams>({
+      query: (params) => ({
+        url: '/master/countries/search',
         params,
       }),
       providesTags: ['Country'],
@@ -62,6 +75,13 @@ export const masterDataApi = createApi({
       }),
       providesTags: ['City'],
     }),
+    searchCities: builder.query<ApiResponse<PaginatedResponse<City>>, CitySearchParams>({
+      query: (params) => ({
+        url: '/master/cities/search',
+        params,
+      }),
+      providesTags: ['City'],
+    }),
     getCityById: builder.query<ApiResponse<City>, number>({
       query: (id) => `/master/cities/${id}`,
       providesTags: ['City'],
@@ -79,6 +99,13 @@ export const masterDataApi = createApi({
     getPortsAirports: builder.query<ApiResponse<PaginatedResponse<PortAirport>>, PaginationParams>({
       query: (params) => ({
         url: '/master/ports-airports',
+        params,
+      }),
+      providesTags: ['PortAirport'],
+    }),
+    searchPortsAirports: builder.query<ApiResponse<PaginatedResponse<PortAirport>>, PortAirportSearchParams>({
+      query: (params) => ({
+        url: '/master/ports-airports/search',
         params,
       }),
       providesTags: ['PortAirport'],
@@ -104,6 +131,13 @@ export const masterDataApi = createApi({
       }),
       providesTags: ['Carrier'],
     }),
+    searchCarriers: builder.query<ApiResponse<PaginatedResponse<Carrier>>, CarrierSearchParams>({
+      query: (params) => ({
+        url: '/master/carriers/search',
+        params,
+      }),
+      providesTags: ['Carrier'],
+    }),
     getCarrierById: builder.query<ApiResponse<Carrier>, number>({
       query: (id) => `/master/carriers/${id}`,
       providesTags: ['Carrier'],
@@ -121,6 +155,13 @@ export const masterDataApi = createApi({
     getCommodities: builder.query<ApiResponse<PaginatedResponse<Commodity>>, PaginationParams>({
       query: (params) => ({
         url: '/master/commodities',
+        params,
+      }),
+      providesTags: ['Commodity'],
+    }),
+    searchCommodities: builder.query<ApiResponse<PaginatedResponse<Commodity>>, CommoditySearchParams>({
+      query: (params) => ({
+        url: '/master/commodities/search',
         params,
       }),
       providesTags: ['Commodity'],
@@ -146,6 +187,13 @@ export const masterDataApi = createApi({
       }),
       providesTags: ['Party'],
     }),
+    searchParties: builder.query<ApiResponse<PaginatedResponse<Party>>, PartySearchParams>({
+      query: (params) => ({
+        url: '/master/parties/search',
+        params,
+      }),
+      providesTags: ['Party'],
+    }),
     getPartyById: builder.query<ApiResponse<Party>, number>({
       query: (id) => `/master/parties/${id}`,
       providesTags: ['Party'],
@@ -164,31 +212,37 @@ export const masterDataApi = createApi({
 export const {
   // Countries
   useGetCountriesQuery,
+  useSearchCountriesQuery,
   useGetCountryByIdQuery,
   useCreateCountryMutation,
   
   // Cities
   useGetCitiesQuery,
+  useSearchCitiesQuery,
   useGetCityByIdQuery,
   useCreateCityMutation,
   
   // Ports/Airports
   useGetPortsAirportsQuery,
+  useSearchPortsAirportsQuery,
   useGetPortAirportByIdQuery,
   useCreatePortAirportMutation,
   
   // Carriers
   useGetCarriersQuery,
+  useSearchCarriersQuery,
   useGetCarrierByIdQuery,
   useCreateCarrierMutation,
   
   // Commodities
   useGetCommoditiesQuery,
+  useSearchCommoditiesQuery,
   useGetCommodityByIdQuery,
   useCreateCommodityMutation,
   
   // Parties
   useGetPartiesQuery,
+  useSearchPartiesQuery,
   useGetPartyByIdQuery,
   useCreatePartyMutation,
 } = masterDataApi;

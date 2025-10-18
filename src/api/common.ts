@@ -39,7 +39,7 @@ export const setApiKeyToObject = async function (object: any, keyParamName: stri
     }
 }
 
-export function setBasicAuthToObject(object: any, configuration?: Configuration): void {
+export const setBasicAuthToObject = function (object: any, configuration?: Configuration) {
     if (configuration && (configuration.username || configuration.password)) {
         object["auth"] = { username: configuration.username, password: configuration.password };
     }

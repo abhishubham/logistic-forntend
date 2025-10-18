@@ -9,13 +9,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, LoginFormData } from '@/lib/validations';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { setCredentials } from '@/store/slices/authSlice';
-import { authService } from '@/services/auth.service';
+import { useLoginMutation } from '@/store/api/authApi';
 
 export default function LoginPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { isAuthenticated } = useAppSelector((s) => s.auth);
-  const [isLoading, setIsLoading] = useState(false);
+  const [login, { isLoading }] = useLoginMutation();
   const [error, setError] = useState<string>('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -34,17 +34,13 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setError('');
-      setIsLoading(true);
-      const result: any = await authService.login({
+      const result = await login({
         email: data.email,
         password: data.password,
-      });
-      // OpenAPI axios client returns AxiosResponse with data wrapped as { success, message, data }
-      const maybeAxiosResponse = (result as any)?.data ? (result as any) : null;
-      const payload = maybeAxiosResponse?.data?.data ?? maybeAxiosResponse?.data ?? result;
+      }).unwrap();
 
-      const accessToken = payload?.accessToken;
-      const user = payload?.user;
+      const accessToken = result?.data?.accessToken;
+      const user = result?.data?.user;
 
       if (accessToken && user) {
         dispatch(setCredentials({ user, token: accessToken }));
@@ -53,9 +49,9 @@ export default function LoginPage() {
         setError('Invalid response from server');
       }
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.data?.message || err?.error || 'Login failed. Please try again.';
+      const msg = err?.data?.message || err?.message || 'Login failed. Please try again.';
       setError(msg);
-    } finally { setIsLoading(false); }
+    }
   };
 
   return (
@@ -171,7 +167,7 @@ export default function LoginPage() {
 
           </div>
 
-          <div className="text-center mt-6 text-xs text-white/80 drop-shadow-md">© {new Date().getFullYear()} LogiFlow</div>
+          <div className="text-center mt-6 text-xs text-white/80 drop-shadow-md">© 2024 LogiFlow</div>
         </motion.div>
       </div>
     </div>

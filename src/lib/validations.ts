@@ -45,12 +45,16 @@ export const createCarrierSchema = z.object({
   type: z.nativeEnum(CarrierType, {
     errorMap: () => ({ message: 'Invalid carrier type' }),
   }),
+  contact_person: z.string().optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  phone: z.string().optional(),
 });
 
 export const createCommoditySchema = z.object({
   commodity_name: z.string().min(2, 'Commodity name must be at least 2 characters'),
   commodity_code: z.string().min(2, 'Commodity code must be at least 2 characters'),
   category: z.string().optional(),
+  description: z.string().optional(),
 });
 
 export const createPartySchema = z.object({
